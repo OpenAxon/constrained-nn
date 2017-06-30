@@ -7,6 +7,7 @@ from keras.activations import softmax
 from keras.layers import Dense, Dropout, Input, concatenate
 from keras.losses import categorical_crossentropy, mean_squared_error, binary_crossentropy
 from keras.models import Model
+from keras.utils import plot_model
 from math import log
 import numpy as np
 import os
@@ -16,26 +17,21 @@ import uuid
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-def mutually_exclusive_loss(y_true, y_pred):
-    '''define a loss over a set of label. 
-       Min loss is when one label is correct with val 1, and others have value 0.
-       Max loss is when other labels have value 1 while corect label has value close to 0.'''
-    return(categorical_crossentropy(y_true, softmax(y_pred)))
-
 def model(input_shape, nb_output):
     x = input = Input(shape=input_shape)
     x = Dense(200, activation='relu')(x)
     x = Dropout(0.3)(x)
     x = Dense(200, activation='relu')(x)
     x = Dropout(0.3)(x)
-    x = Dense(100, activation='relu')(x)
+    x = Dense(200, activation='relu')(x)
     x = Dropout(0.3)(x)
     x = Dense(nb_output, activation='sigmoid', name='main_output')(x)
     model = Model(inputs=input, outputs=x)
+    plot_model(model, to_file='images/simple-network.png', show_shapes=True)
     return(model)
 
 def train(model, x, y, tboard):
-    model.compile(optimizer='adam', loss={'main_output': config['loss']})
+    model.compile(optimizer='adam', loss={'main_output': binary_crossentropy})
     model.fit(x, # data
               y, # labels
               batch_size=config['batch_size'], epochs=config['epochs'],

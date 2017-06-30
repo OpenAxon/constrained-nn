@@ -15,6 +15,7 @@ import tensorflow as tf
 import uuid
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+KERAS_VERBOSITY = 0
 
 def mutually_exclusive_loss(y_true, y_pred):
     '''define a loss over a set of label. 
@@ -30,7 +31,7 @@ def multiple_loss(y_true, y_pred):
     y_other_pred = y_pred[:, config['nb_disjoint_classes']:]
     loss1 = categorical_crossentropy(y_disjoint_true, softmax(y_disjoint_pred))
     loss2 = binary_crossentropy(y_other_true, y_other_pred)
-    return loss1 + loss2
+    return config['disjoint_classes_output_weight'] * loss1 + loss2
 
 def model(input_shape, nb_output):
     x = input = Input(shape=input_shape)
@@ -45,11 +46,30 @@ def model(input_shape, nb_output):
     plot_model(model, to_file='images/constrained-network.png', show_shapes=True)
     return(model)
 
-def train(model, x, y, tboard):
-    model.compile(optimizer='adam', loss={'main_output': multiple_loss})
-    model.fit(x,
-              {'disjoint_classes': y[:,:config['nb_disjoint_classes']], 'main_output': y[:,config['nb_disjoint_classes']:]}, # labels
+def constraint_metric(y_true, y_pred):
+    y_disjoint_true = y_true[:, :config['nb_disjoint_classes']]
+    y_disjoint_pred = y_pred[:, :config['nb_disjoint_classes']]
+    return tf.equal(tf.cast(y_disjoint_pred, tf.bool), tf.cast(y_disjoint_true, tf.bool))
+
+def train_simple(model, x, y, tboard):
+    model.compile(optimizer='adam', 
+                  metrics=[constraint_metric],
+                  loss={'main_output': binary_crossentropy})
+    model.fit(x, # data
+              y, # labels
               batch_size=config['batch_size'], epochs=config['epochs'],
+              callbacks=[keras.callbacks.TensorBoard(log_dir=tboard)],
+              validation_split=0.33,
+              verbose=KERAS_VERBOSITY)
+    return
+
+def train_constrained(model, x, y, tboard):
+    model.compile(optimizer='adam', 
+                  metrics=[constraint_metric],
+                  loss={'main_output': multiple_loss})
+    model.fit(x,
+              y, # labels
+              batch_size=config['batch_size'], epochs=config['epochs'], 
               callbacks=[keras.callbacks.TensorBoard(log_dir=tboard)],
               validation_split=0.33,
               verbose=KERAS_VERBOSITY)
@@ -63,7 +83,7 @@ def test(m, x, y):
 
 def main():
     x_train, y_train, x_test, y_test = generate_and_split(config['dataset_size'], config['nb_disjoint_classes'], config['nb_other_classes'], config['test_size'])
-    m = model((config['nb_disjoint_classes']+config['nb_other_classes'],), [config['nb_disjoint_classes'], config['nb_other_classes']])
+    m = model((config['nb_disjoint_classes']+config['nb_other_classes'],), config['nb_disjoint_classes']+ config['nb_other_classes'])
     # print(m.input_shape)
     # print(m.output_shape)
     # print(x_train.shape)
@@ -72,7 +92,7 @@ def main():
     name = NAME+"_DISJOINT_WEIGHT_{}_".format(config['disjoint_classes_output_weight'])
     net_name = name+str(uuid.uuid4())
     tboard = os.path.join(config['logdir_path'], net_name)
-    train(m, x_train, y_train, tboard)
+    train_constrained(m, x_train, y_train, tboard)
     total_loss, disjoint_classes_loss, main_loss = test(m, x_test, y_test)
     print("Total loss:{}\nMain loss:{}\nDisjoint classes loss:{}".format(total_loss, main_loss, disjoint_classes_loss))
     wrong_pred = [0, 0]
