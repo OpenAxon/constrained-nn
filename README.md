@@ -35,4 +35,5 @@ This is experimental code, meant to accompany the above referenced paper, not me
 Copyright 2017 Axon Enterprise, Inc.
 
 ### License
+See `LICENSE.txt` in this repository.
 Apache (version 2.0) https://www.apache.org/licenses/LICENSE-2.0
