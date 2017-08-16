@@ -1,3 +1,18 @@
+# Copyright 2017 Axon Entreprise, Inc. All Rights Reserved.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+# ==============================================================================
+
 from generate_dataset import generate_and_split
 from config import *
 import json
@@ -15,7 +30,6 @@ import os
 import tensorflow as tf
 import uuid
 
-#os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 KERAS_VERBOSITY = 2
 
 def mutually_exclusive_loss(y_true, y_pred):
@@ -50,7 +64,6 @@ def model(input_shape, nb_output):
 def constraint_accuracy(y_true, y_pred):
     y_disjoint_true = y_true[:, :config['nb_disjoint_classes']]
     y_disjoint_pred = y_pred[:, :config['nb_disjoint_classes']]
-#    return tf.reduce_all(tf.equal(tf.cast(tf.cast(y_disjoint_pred+0.5, tf.int32), tf.bool), tf.cast(y_disjoint_true, tf.bool)))
     return categorical_accuracy(y_disjoint_true, y_disjoint_pred)
 
 def others_accuracy(y_true, y_pred):
@@ -62,8 +75,7 @@ def train_simple(model, x, y, tboard):
     model.compile(optimizer='adam', 
                   metrics=[constraint_accuracy, others_accuracy],
                   loss={'main_output': binary_crossentropy})
-    model.fit(x, # data
-              y, # labels
+    model.fit(x, y,
               batch_size=config['batch_size'], epochs=config['epochs'],
               callbacks=[keras.callbacks.TensorBoard(log_dir=tboard)],
               validation_split=0.33,
@@ -91,16 +103,12 @@ def test(m, x, y):
 def main():
     x_train, y_train, x_test, y_test = generate_and_split(config['dataset_size'], config['nb_disjoint_classes'], config['nb_other_classes'], config['test_size'])
     m = model((config['nb_disjoint_classes']+config['nb_other_classes'],), config['nb_disjoint_classes']+ config['nb_other_classes'])
-    # print(m.input_shape)
-    # print(m.output_shape)
-    # print(x_train.shape)
-    # print(y_train.shape)
 
-#    print("Network type: simple")
-#    name = NAME
-#    net_name = name+str(uuid.uuid4())
-#    tboard = os.path.join(config['logdir_path'], net_name)
-#    train_simple(m, x_train, y_train, tboard)
+    print("Network type: simple")
+    name = NAME
+    net_name = name+str(uuid.uuid4())
+    tboard = os.path.join(config['logdir_path'], net_name)
+    train_simple(m, x_train, y_train, tboard)
 
     print("Network type: constrained")
     name = NAME+"_DISJOINT_WEIGHT_{}_".format(config['disjoint_classes_output_weight'])

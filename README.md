@@ -7,7 +7,9 @@ Install the latest versions of
 * Keras
 
 ### How to run
-running `python train_both.py` should work
+* Create the `logdir_path` and `results_path` directories specified in `config.py` (see below).
+* `pip install -r requirements.txt`
+* `python train_both.py`
 
 Parameters can then be set in config.py (see below)
 
