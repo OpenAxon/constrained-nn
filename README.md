@@ -1,13 +1,13 @@
 Experiments towards adding logical constraints to multi-class, multi-label classifiers.
 This is the code for the paper "Class disjointness constraints as specific objective functions in neural network classifiers" published at SemDeep (http://semdeep.iiia.csic.es/SemDeep-2/index.html).
 
-### pre-requisites
-Install the latest versions of 
+### Pre-requisites
+See `requirements.txt`. This code is using the following libraries:
 * Tensorflow
 * Keras
 
 ### How to run
-* Create the `logdir_path` and `results_path` directories specified in `config.py` (see below).
+* Create the `model_image_path` and `results_path` directories specified in `config.py` (see below).
 * `pip install -r requirements.txt`
 * `python train_both.py`
 

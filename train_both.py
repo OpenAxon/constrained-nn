@@ -17,29 +17,25 @@ from generate_dataset import generate_and_split
 from config import *
 import json
 import keras
-from keras import backend as K
 from keras.activations import softmax
-from keras.layers import Dense, Dropout, Input, concatenate
-from keras.losses import categorical_crossentropy, mean_squared_error, binary_crossentropy
+from keras.layers import Dense, Dropout, Input
+from keras.losses import categorical_crossentropy, binary_crossentropy
 from keras.metrics import binary_accuracy, categorical_accuracy
 from keras.models import Model
 from keras.utils import plot_model
-from math import log
 import numpy as np
 import os
 import tensorflow as tf
 import uuid
 
-KERAS_VERBOSITY = 2
-
 def mutually_exclusive_loss(y_true, y_pred):
     '''define a loss over a set of label. 
        Min loss is when one label is correct with val 1, and others have value 0.
-       Max loss is when other labels have value 1 while corect label has value close to 0.'''
+       Max loss is when other labels have value 1 while correct label has value close to 0.'''
     return(categorical_crossentropy(y_true, softmax(y_pred)))
 
 def multiple_loss(y_true, y_pred):
-    '''Assuming disjoint classes are the first colomns of the data'''
+    '''Assuming disjoint classes are the first columns of the data'''
     y_disjoint_true = y_true[:, :config['nb_disjoint_classes']]
     y_disjoint_pred = y_pred[:, :config['nb_disjoint_classes']]
     y_other_true = y_true[:, config['nb_disjoint_classes']:]
@@ -50,15 +46,15 @@ def multiple_loss(y_true, y_pred):
 
 def model(input_shape, nb_output):
     x = input = Input(shape=input_shape)
-    x = Dense(200, activation='relu')(x)
-    x = Dropout(0.3)(x)
-    x = Dense(200, activation='relu')(x)
-    x = Dropout(0.3)(x)
-    x = Dense(200, activation='relu')(x)
-    x = Dropout(0.3)(x)
+    x = Dense(config['total_neurons_per_layer'], activation='relu')(x)
+    x = Dropout(config['dropout'])(x)
+    x = Dense(config['total_neurons_per_layer'], activation='relu')(x)
+    x = Dropout(config['dropout'])(x)
+    x = Dense(config['total_neurons_per_layer'], activation='relu')(x)
+    x = Dropout(config['dropout'])(x)
     x = Dense(nb_output, activation='sigmoid', name='main_output')(x)
     model = Model(inputs=input, outputs=x)
-    plot_model(model, to_file='images/constrained-network.png', show_shapes=True)
+    plot_model(model, to_file=config['model_image_path'], show_shapes=True)
     return(model)
 
 def constraint_accuracy(y_true, y_pred):
@@ -104,7 +100,6 @@ def main():
     x_train, y_train, x_test, y_test = generate_and_split(config['dataset_size'], config['nb_disjoint_classes'], config['nb_other_classes'], config['test_size'])
     m = model((config['nb_disjoint_classes']+config['nb_other_classes'],), config['nb_disjoint_classes']+ config['nb_other_classes'])
 
-    print("Network type: simple")
     name = NAME
     net_name = name+str(uuid.uuid4())
     tboard = os.path.join(config['logdir_path'], net_name)
