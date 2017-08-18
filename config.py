@@ -24,15 +24,15 @@ config = {
     'disjoint_classes_output_weight': 8,
     'layers': 3,
     'total_neurons_per_layer': 200,
-    'dropout' = 0.3,
+    'dropout': 0.3,
     'logdir_path': 'logs/experiments2/dataset-50000',
     'results_path': 'results/experiments2',
     'model_image_path': 'images/constrained-network.png'
 }
 
-NAME = "TEST_SIZE_{}-DATASET_SIZE_{}-NB_CLASSES_{}-EPOCHS_{}-BATCH_{batch}-3layers{}neurons"\
+NAME = "TEST_SIZE_{}-DATASET_SIZE_{}-NB_CLASSES_{}-EPOCHS_{}-BATCH_{batch}-3layers{nbneurons}neurons"\
        .format(config['test_size'], config['dataset_size'], config['nb_disjoint_classes']+config['nb_other_classes'], 
-               config['epochs'], batch=config['batch_size'], config['total_neurons_per_layer'])
+               config['epochs'], batch=config['batch_size'], nbneurons=config['total_neurons_per_layer'])
 
 KERAS_VERBOSITY = 0
 
