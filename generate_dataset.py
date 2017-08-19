@@ -15,8 +15,6 @@
 
 from config import config
 import numpy as np
-import tensorflow as tf
-
 
 def generate_dataset_with_disjoint_classes(size, nb_disjoint, nb_others):
     ''' Generates a synthetic dataset for testing disjoint classes restrictions

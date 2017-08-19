@@ -15,7 +15,6 @@
 
 from generate_dataset import generate_and_split
 from config import *
-import json
 import keras
 from keras.activations import softmax
 from keras.layers import Dense, Dropout, Input
@@ -23,9 +22,7 @@ from keras.losses import categorical_crossentropy, binary_crossentropy
 from keras.metrics import binary_accuracy, categorical_accuracy
 from keras.models import Model
 from keras.utils import plot_model
-import numpy as np
 import os
-import tensorflow as tf
 import uuid
 
 def mutually_exclusive_loss(y_true, y_pred):
